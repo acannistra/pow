@@ -1,0 +1,157 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Place favicon.ico in the root directory -->
+
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.6.0/css/foundation.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/1.4.1/mapbox-gl.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/1.4.1/mapbox-gl.css" />
+
+  <style>
+  	body { margin: 0; padding: 0; }
+  	#map { width: 100%; };
+  </style>
+
+  <meta name="theme-color" content="#fafafa">
+</head>
+
+<body>
+  <div class="grid-y" style="height: 100vh">
+      <div class="cell shrink header small-cell-block-container">
+        <h2>POW Alert Configuration Page.</h2>
+      </div>
+      <div class="grid-y" style="height: 100%;">
+        <div id='map' class="cell small-6 medium-3 large-6">
+        </div>
+        <div class='cell small-6'>
+          <div class="grid-x">
+            <div class="small-6 grid-padding-x grid-padding-y" style="padding: 20px ">
+            <label>Selected Location
+              <select id='selector'>
+
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+  </div>
+  <!--[if IE]>
+    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="https://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
+  <![endif]-->
+
+
+
+</body>
+<style>
+  .marker {
+  background-image: url('snowflake.png');
+  background-size: cover;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+</style>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYWNhbm5pc3RyYSIsImEiOiJLWVM2RWhJIn0.TputXxRYBUPh-vjDg6_TFA';
+  var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+    center:  [
+      -119.43016815185547,
+      47.447593738482304
+    ], // starting position [lng, lat]
+    zoom: 9 // starting zoom
+  });
+  var locs = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Alpental"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.43016815185547,
+          47.447593738482304
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Summit Central"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -121.40926837921141,
+          47.40712135118252
+        ]
+      }
+    }
+  ]
+}
+
+  locs.features.forEach(function(marker, index) {
+    console.log(marker)
+    // create a HTML element + selector for each feature
+    var el = document.createElement('div');
+    el.className = 'marker';
+    el.setAttribute('placename', marker.properties.name)
+    var selector = document.getElementById('selector')
+    var option = document.createElement("option");
+    option.text = marker.properties.name;
+    option.setAttribute('location', marker.geometry.coordinates.toString())
+    selector.add(option)
+
+    // make a marker for each feature and add to the map
+    new mapboxgl.Marker(el)
+      .setLngLat(marker.geometry.coordinates)
+      .addTo(map);
+    el.addEventListener('click', function(e){
+      // Prevent the `map.on('click')` from being triggered
+      e.stopPropagation();
+      var selector = document.getElementById('selector')
+      selector.value = e.toElement.getAttribute('placename')
+      map.flyTo({
+        center: marker.geometry.coordinates,
+        essential: true // this animation is considered essential with respect to prefers-reduced-motion
+      });
+    });
+
+    if(index == 0){
+      var selector = document.getElementById('selector')
+      var selected = el.getAttribute('placename')
+      selector.value = selected
+      var loc = locs.features.filter(function(d){
+        return(d.properties.name == selected)
+      })[0]
+      map.jumpTo({
+        center: loc.geometry.coordinates,
+        essential: true // this animation is considered essential with respect to prefers-reduced-motion
+        });
+    }
+  });
+
+  var selector = document.getElementById('selector')
+    .addEventListener('change', function(e){
+      var loc = locs.features.filter(function(d){
+        return(d.properties.name == e.target.value)
+      })[0]
+      map.flyTo({
+        center: loc.geometry.coordinates
+      })
+    });
+</script>
+</html>
