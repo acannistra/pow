@@ -35,6 +35,26 @@
         </div>
 
       </div>
+      <div class="cell shrink">
+        <div class="grid-x grid-margin-x">
+          <div class="cell small-4">
+            <b>Current Settings</b>
+          </div>
+        </div>
+      </div>
+      <div class="cell shrink">
+          <div class="grid-x align-middle align-center">
+            <div class="cell auto">
+              Location: {{location}}
+            </div>
+            <div class="cell auto">
+              POW Threshold: {{snowfall_threshold}}
+            </div>
+            <div class="cell auto">
+              Accumulation Hours: {{accumulation_period}}
+            </div>
+          </div>
+      </div>
       <div class="cell medium-6 small-4 body">
         <div id='map' style="height: 100%">
         </div>
@@ -42,26 +62,29 @@
       <div class="cell auto">
         <div class="grid-x grid-padding-x">
           <div class="cell medium-12 medium-cell-block-y">
-            <label>Selected Location
-                <select id='selector'>
+            <form action="/" method="post">
+              <label>Selected Location
+                  <select name="location" id='selector'>
 
-                </select>
-              </label>
-              <label>POW Alert Threshold – Snowfall Amount
-                <div class="input-group">
-                  <input id='threshold' class="input-group-field" type="number" value='6'>
-                  <span class="input-group-label">Inches</span>
-                </div>
-              </label>
-              <label>POW Accumulation – Hours
-                <div class="input-group">
-                  <input id='threshold' class="input-group-field" type="number" value='6'>
-                  <span class="input-group-label">Hours</span>
-                </div>
-              </label>
-              <p class="help-text" id="passwordHelpText">We'll show a POW alert when the sum total of snowfall exceeds the above threshold summed across this many previous hours.</p>
+                  </select>
+                </label>
+                <label>POW Alert Threshold – Snowfall Amount
+                  <div class="input-group">
+                    <input name="snowfall_thresh" id='threshold' class="input-group-field" type="number" value='6'>
+                    <span class="input-group-label">Inches</span>
+                  </div>
+                </label>
+                <label>POW Accumulation – Hours
+                  <div class="input-group">
+                    <input name="accumulation_period" id='threshold' class="input-group-field" type="number" value='6'>
+                    <span class="input-group-label">Hours</span>
+                  </div>
+                </label>
+                <p class="help-text" id="passwordHelpText">We'll show a POW alert when the sum total of snowfall exceeds the above threshold summed across this many previous hours.</p>
 
-              <a class="button expanded" href="#">Save Settings</a>
+                <input type='submit' class="button expanded"></input>
+              </form>
+
           </div>
 
         </div>
