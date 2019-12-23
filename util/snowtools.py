@@ -1,7 +1,6 @@
 import requests
 import pandas as pd
 import numpy as np
-from scipy import stats
 from pandas.io.json import json_normalize
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
