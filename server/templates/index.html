@@ -13,7 +13,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.6.0/css/foundation.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/1.4.1/mapbox-gl.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/1.4.1/mapbox-gl.css" />
-
+  <script
+    src="https://code.jquery.com/jquery-3.4.1.min.js"
+    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+    crossorigin="anonymous"></script>
   <style>
   	body { margin: 0; padding: 0; }
   	#map { width: 100%; };
@@ -119,87 +122,62 @@
     ], // starting position [lng, lat]
     zoom: 9 // starting zoom
   });
-  var locs = {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "name": "Alpental"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -121.43016815185547,
-          47.447593738482304
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "name": "Summit Central"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -121.40926837921141,
-          47.40712135118252
-        ]
-      }
-    }
-  ]
-}
+  jQuery.getJSON("stations", (locs) => {
+    locs.forEach(function(marker, index) {
+      console.log(marker)
+      // create a HTML element + selector for each feature
+      var el = document.createElement('div');
+      el.className = 'marker';
+      el.setAttribute('placename', marker.name)
+      el.setAttribute('selector_label', marker.name + " (" + marker.elevation + "')");
 
-  locs.features.forEach(function(marker, index) {
-    console.log(marker)
-    // create a HTML element + selector for each feature
-    var el = document.createElement('div');
-    el.className = 'marker';
-    el.setAttribute('placename', marker.properties.name)
-    var selector = document.getElementById('selector')
-    var option = document.createElement("option");
-    option.text = marker.properties.name;
-    option.setAttribute('location', marker.geometry.coordinates.toString())
-    selector.add(option)
-
-    // make a marker for each feature and add to the map
-    new mapboxgl.Marker(el)
-      .setLngLat(marker.geometry.coordinates)
-      .addTo(map);
-    el.addEventListener('click', function(e){
-      // Prevent the `map.on('click')` from being triggered
-      e.stopPropagation();
       var selector = document.getElementById('selector')
-      selector.value = e.toElement.getAttribute('placename')
-      map.flyTo({
-        center: marker.geometry.coordinates,
-        essential: true // this animation is considered essential with respect to prefers-reduced-motion
-      });
-    });
+      var option = document.createElement("option");
+      option.text = marker.name + " (" + marker.elevation + "')";
+      option.setAttribute('name', marker.name)
+      option.setAttribute('location',
+        [marker.lon, marker.lat].toString())
+      selector.add(option)
 
+      // make a marker for each feature and add to the map
+      new mapboxgl.Marker(el)
+        .setLngLat([marker.lon, marker.lat])
+        .addTo(map);
+
+      el.addEventListener('click', function(e){
+        // Prevent the `map.on('click')` from being triggered
+        e.stopPropagation();
+        var selector = document.getElementById('selector')
+        selector.value = e.toElement.getAttribute('selector_label')
+        map.flyTo({
+          center: [marker.lon, marker.lat],
+          essential: true // this animation is considered essential with respect to prefers-reduced-motion
+        });
+      });
     if(index == 0){
       var selector = document.getElementById('selector')
       var selected = el.getAttribute('placename')
       selector.value = selected
-      var loc = locs.features.filter(function(d){
-        return(d.properties.name == selected)
+      var loc = locs.filter(function(d){
+        return(d.name == selected)
       })[0]
       map.jumpTo({
-        center: loc.geometry.coordinates,
+        center: [loc.lon, loc.lat],
         essential: true // this animation is considered essential with respect to prefers-reduced-motion
         });
     }
   });
-
   var selector = document.getElementById('selector')
     .addEventListener('change', function(e){
-      var loc = locs.features.filter(function(d){
-        return(d.properties.name == e.target.value)
+      var nameSelected = $("option:selected", this)[0].getAttribute('name');
+
+      var loc = locs.filter(function(d){
+        return(d.name == nameSelected)
       })[0]
       map.flyTo({
-        center: loc.geometry.coordinates
+        center: [loc.lon, loc.lat]
       })
     });
+  })
 </script>
 </html>
