@@ -27,7 +27,7 @@ def init(**kwargs):
             print("Loading Station {}".format(station.get('name')))
             c.execute(load_command, (
                 station.get('name'),
-                station.get('desc', None),
+                station.get('desc', station.get('nwac_id')),
                 station.get('elevation', -1),
                 station.get('url', None),
                 station.get('snow_field', 'snow_depth'),
