@@ -11,6 +11,13 @@ It's comprised of Raspberry Pi Zero W hardware running a daemon to check for the
 
 ## Screenshots
 
+| ![config](screenshots/config_screenshot.jpg) | ![plot](screenshots/plot_screenshot.jpg) |
+|----------------------------------------------|------------------------------------------|
+| Configuration                                | History Plot (Red = Detected Pow Day)    |
+
+![plot-big](screenshots/exampleplot.png)
+**Example POW Detections**
+
 ## Setup
 
 To setup the pi, after installation (TBD):
