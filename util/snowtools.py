@@ -5,7 +5,7 @@ from pandas.io.json import json_normalize
 from datetime import datetime, timedelta
 import matplotlib
 matplotlib.use('Agg')
-plt = matplotlib.pyplot
+import matplotlib.pyplot as plt
 
 def get_nwac_v2_url(staid, datetime_now = datetime.isoformat(datetime.now()), limit=168):
     return("https://www.nwac.us/api/v5/measurement?data_logger={}&max_datetime={}&limit={}".format(staid, datetime_now, limit))

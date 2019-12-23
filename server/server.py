@@ -4,7 +4,7 @@ import sys
 from io import BytesIO
 import matplotlib
 matplotlib.use('Agg')
-plt = matplotlib.pyplot 
+import matplotlib.pyplot as plt
 sys.path.append('..')
 from util import snowtools, dbtools
 
