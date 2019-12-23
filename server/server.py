@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, send_file, request, jsonify, make_response
 import sqlite3
 import sys
 from io import BytesIO
+import matplotlib.pyplot as plt
 
 sys.path.append('..')
 from util import snowtools, dbtools
@@ -11,16 +12,18 @@ app = Flask(__name__)
 DB = '../pow.db'
 
 
-
-
-
-@app.route("/pow")
-def pow():
-    params = dbtools.get_params(app.config['DB'])
+def compute_pow(params):
     station = dbtools.get_station(app.config['DB'], params['station'])
 
     snow = snowtools.get_snow_df(snowtools.get_nwac_v2_url(station['description']))
     pow = snowtools.find_pow(snow, int(params['snowfall_threshold']), int(params['accumulation_period']))
+    return pow
+
+@app.route("/pow")
+def pow():
+    params = dbtools.get_params(app.config['DB'])
+
+    pow = compute_pow(params)
 
     most_recent = pow.iloc[-1]
     r = params.copy()
@@ -28,6 +31,19 @@ def pow():
     r['period_accumulation'] = most_recent.accum
     r['measurement_time'] = most_recent.name
     return(jsonify(r))
+
+@app.route("/pow/plot")
+def plotpow():
+    params = dbtools.get_params(app.config['DB'])
+
+    pow = compute_pow(params)
+
+    fig = snowtools.pow_history(pow, params['station'])
+    buf = BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png')
+    # plt.show(fig)
 
 
 
