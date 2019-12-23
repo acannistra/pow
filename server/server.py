@@ -2,8 +2,9 @@ from flask import Flask, render_template, send_file, request, jsonify, make_resp
 import sqlite3
 import sys
 from io import BytesIO
-import matplotlib.pyplot as plt
-
+import matplotlib
+matplotlib.use('Agg')
+plt = matplotlib.pyplot 
 sys.path.append('..')
 from util import snowtools, dbtools
 
