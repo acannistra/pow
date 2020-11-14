@@ -7,19 +7,31 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-def get_nwac_v2_url(staid, datetime_now = datetime.isoformat(datetime.now()), limit=168):
-    return("https://www.nwac.us/api/v5/measurement?data_logger={}&max_datetime={}&limit={}".format(staid, datetime_now, limit))
+SNOWDATA_URL="https://api.snowobs.com/v1/station/timeseries"
+SNOWDATA_TOKEN="71ad26d7aaf410e39efe91bd414d32e1db5d"
 
-def get_snow_df(url, snow_field = 'snow_depth'):
+
+def get_snow_df(staid, hours, snow_field = 'snow_depth'):
     # raw = requests.get(url).json()
     # snow = raw['station_timeseries']
-    raw = requests.get(url, headers={'Authorization': "Token d8d0db6e9d8ec1d699cbe4acf1052e72716f9bee"}).json()
+    req_params = {
+        'token' : SNOWDATA_TOKEN,
+        'stid': staid,
+        'source': 'nwac',
+        'end': datetime.utcnow().strftime("%Y%m%d%H%M"),
+        'start': (datetime.utcnow() - timedelta(hours=hours)).strftime("%Y%m%d%H%M")
+    }
 
-    data = json_normalize(raw['results'])
-    data = data.set_index(pd.to_datetime(data.datetime))
+    raw = requests.get(SNOWDATA_URL, params=req_params)
+
+    obs = raw.json()['station_timeseries']['STATION'][0]['OBSERVATIONS']
+    data = pd.DataFrame(
+        data=obs
+    )
+
+    data = data.set_index(pd.to_datetime(data['date_time']))
     data = data.sort_index()[snow_field]
-    # data = data.where(data != data.max(),
-    #                   other=np.NaN)
+
     q1 = data.quantile(0.25)
     q3 = data.quantile(0.75)
     iqr = q3 - q1
@@ -30,7 +42,7 @@ def get_snow_df(url, snow_field = 'snow_depth'):
 
 def find_pow(snow, threshold, period):
     accumulation = snow.diff(periods = 1).rolling(period, min_periods=1).sum()
-    is_pow = accumulation > threshold
+    is_pow = accumulation >= threshold
     all = pd.concat([snow, accumulation, is_pow], axis=1)
     all.columns = ['snow_depth', 'accum', 'is_pow']
     all.threshold = threshold
