@@ -22,7 +22,7 @@ def get_status(station, threshold, period):
     logging.info(f"Getting pow status for {station} (threshold: {threshold}, period: {period})...")
     r = requests.get(POW_API_URL, params=params)
     logging.info(f"API Response: {r.json()}")
-    return r.json()['is_pow']
+    return r.json()['is_pow'] == 'True'
 
 def setup_gpio(pin):
     g.setmode(g.BCM)
@@ -56,11 +56,11 @@ def daemon(logfile, config):
 
     while True:
         is_pow = get_status(params['station'], params['threshold'], params['period'])
-    
-        if is_pow and not lamp_on:
+
+        if is_pow and (not lamp_on):
             logging.info(f"POW! Turning lamp on.")
             lamp_on = turn_lamp_on(POW_GPIO_PIN)
-        elif not is_pow and lamp_on: 
+        elif not is_pow and lamp_on:
             logging.info("Turning lamp off.")
             lamp_on = turn_lamp_off(POW_GPIO_PIN)
         else:
