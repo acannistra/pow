@@ -1,9 +1,12 @@
 import requests
+import signal
 import os
+from time import sleep
 import click
 import sys
 import json
 import logging
+import RPi.GPIO as g
 
 sys.path.append('..')
 
@@ -21,17 +24,47 @@ def get_status(station, threshold, period):
     logging.info(f"API Response: {r.json()}")
     return r.json()['is_pow']
 
+def setup_gpio(pin):
+    g.setmode(g.BCM)
+    g.setup(pin, g.OUT, initial=g.LOW)
+
+def turn_lamp_on(pin):
+    g.output(pin, g.HIGH)
+    return True
+def turn_lamp_off(pin):
+    g.output(pin, g.LOW)
+    return False
+
+def die_gracefully(signal, frame):
+    turn_lamp_off(POW_GPIO_PIN)
+    sys.exit(0)
+
 
 @click.command()
 @click.argument('config')
-@click.argument("gpio", default=POW_GPIO_PIN)
-def daemon(config, gpio):
+def daemon(config):
     logging.basicConfig(level=logging.INFO)
     params = json.load(open(config))
 
-    while True:
-        status = get_status(params['station'], params['threshold'], params['period'])
+    setup_gpio(POW_GPIO_PIN)
+    signal.signal(signal.SIGINT, die_gracefully)
 
+    lamp_on = False
+
+    while True:
+        is_pow = get_status(params['station'], params['threshold'], params['period'])
+    
+        if is_pow and not lamp_on:
+            logging.info(f"POW! Turning lamp on.")
+            lamp_on = turn_lamp_on(POW_GPIO_PIN)
+        elif not is_pow and lamp_on: 
+            logging.info("Turning lamp off.")
+            lamp_on = turn_lamp_off(POW_GPIO_PIN)
+        else:
+            logging.info(f"Doing nothing. (is_pow = {is_pow}, lamp_on = {lamp_on})")
+
+
+        logging.info(f"Sleeping for {params['poll_interval_s']} seconds.")
         sleep(params['poll_interval_s'])
 
 
