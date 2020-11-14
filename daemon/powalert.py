@@ -37,17 +37,20 @@ def turn_lamp_off(pin):
 
 def die_gracefully(signal, frame):
     turn_lamp_off(POW_GPIO_PIN)
+    g.cleanup()
     sys.exit(0)
 
 
 @click.command()
+@click.option('--logfile', default=None)
 @click.argument('config')
-def daemon(config):
-    logging.basicConfig(level=logging.INFO)
+def daemon(logfile, config):
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO, filename=logfile)
     params = json.load(open(config))
 
     setup_gpio(POW_GPIO_PIN)
     signal.signal(signal.SIGINT, die_gracefully)
+    signal.signal(signal.SIGTERM, die_gracefully)
 
     lamp_on = False
 
