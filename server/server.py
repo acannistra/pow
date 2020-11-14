@@ -1,33 +1,68 @@
+import os
 from flask import Flask, render_template, send_file, request, jsonify, make_response
 import sqlite3
 import sys
 from io import BytesIO
 import matplotlib
+import json
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 sys.path.append('..')
 from util import snowtools, dbtools
 
+POW_NWAC_STATIONS_FILE = os.environ.get("POW_NWAC_STATIONS_FILE", "nwac-stations.json")
+
 app = Flask(__name__)
 
-DB = '../pow.db'
+
+class APIError(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+@app.errorhandler(APIError)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+def parse_request(request):
+    station = request.args.get("station")
+    threshold = int(request.args.get('threshold'))
+    period = int(request.args.get('period'))
+
+    try:
+        stations = json.load(open(POW_NWAC_STATIONS_FILE))
+        id = [_i['nwac_id'] for _i in stations if _i['name'].lower() == station.lower()][0]
+    except IndexError:
+        raise APIError(f"Station \"{station}\" not found. See /stations.", status_code=404)
 
 
-def compute_pow(params):
-    station = dbtools.get_station(app.config['DB'], params['station'])
+    return (id, threshold, period)
 
-    snow = snowtools.get_snow_df(snowtools.get_nwac_v2_url(station['description']))
-    pow = snowtools.find_pow(snow, int(params['snowfall_threshold']), int(params['accumulation_period']))
+def compute_pow(staid, thresh, period):
+    snow = snowtools.get_snow_df(staid, period*4)
+    pow = snowtools.find_pow(snow, int(thresh), int(period))
     return pow
 
-@app.route("/pow")
+@app.route("/pow/")
 def pow():
-    params = dbtools.get_params(app.config['DB'])
+    staid, threshold, period = parse_request(request)
 
-    pow = compute_pow(params)
+    pow = compute_pow(staid, threshold, period)
 
     most_recent = pow.iloc[-1]
-    r = params.copy()
+    r = request.args.copy()
     r['is_pow'] = str(most_recent.is_pow)
     r['period_accumulation'] = most_recent.accum
     r['measurement_time'] = most_recent.name
@@ -35,11 +70,11 @@ def pow():
 
 @app.route("/pow/plot")
 def plotpow():
-    params = dbtools.get_params(app.config['DB'])
+    staid, threshold, period = parse_request(request)
 
-    pow = compute_pow(params)
+    pow = compute_pow(staid, threshold, period)
 
-    fig = snowtools.pow_history(pow, params['station'])
+    fig = snowtools.pow_history(pow, staid)
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
     buf.seek(0)
@@ -47,31 +82,12 @@ def plotpow():
     # plt.show(fig)
 
 
-
 @app.route('/stations', methods=['GET'])
 def stations():
-    conn = sqlite3.connect(app.config['DB'])
-    c = conn.cursor()
-    q = c.execute('SELECT * FROM {};'.format('stations'))
-    r = [dict((q.description[i][0], value) \
-               for i, value in enumerate(row)) for row in q.fetchall()]
+    r = json.load(open(POW_NWAC_STATIONS_FILE))
     return jsonify(r)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        dbtools.update_params(app.config['DB'], {
-            'station': request.form.get('location'),
-            'snowfall_thresh': request.form.get('snowfall_thresh'),
-            'accumulation_period': request.form.get('accumulation_period')
-        })
-    return render_template("index.html", **dbtools.get_params(app.config['DB']))
 
 
-if __name__ == "__main__":
-    try:
-        app.config['DB'] = sys.argv[1]
-    except IndexError:
-        print("usage: server.py [database_file]")
-        exit(1)
+if __name__ == "__main__":        
     app.run(host='0.0.0.0', port=8080, debug=True)
