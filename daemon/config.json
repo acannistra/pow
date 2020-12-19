@@ -1,0 +1,6 @@
+{
+  "poll_interval_s": 10,
+  "station": "Alpental Mid-Mountain",
+  "threshold": 6,
+  "period": 24
+}
