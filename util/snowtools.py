@@ -45,6 +45,20 @@ def find_pow(snow, threshold, period):
     is_pow = accumulation >= threshold
     all = pd.concat([snow, accumulation, is_pow], axis=1)
     all.columns = ['snow_depth', 'accum', 'is_pow']
+    all['accum'] = all['accum'].where(all['accum'] < 100)
+    all = all.dropna()
+    all.threshold = threshold
+    all.period = period
+    return(all)
+
+
+def find_pow_2(snow, threshold, period): 
+    accumulation = (snow - snow.shift(periods=period)).dropna()
+    is_pow = accumulation >= threshold
+    all = pd.concat([snow, accumulation, is_pow], axis=1).dropna()
+    all.columns = ['snow_depth', 'accum', 'is_pow']
+    all['accum'] = all['accum'].where(abs(all['accum']) < 100)
+    all = all.dropna()
     all.threshold = threshold
     all.period = period
     return(all)
