@@ -52,7 +52,7 @@ def parse_request(request):
 
 def compute_pow(staid, thresh, period):
     snow = snowtools.get_snow_df(staid, period*4)
-    pow = snowtools.find_pow(snow, int(thresh), int(period))
+    pow = snowtools.find_pow_2(snow, int(thresh), int(period))
     return pow
 
 @app.route("/pow/")

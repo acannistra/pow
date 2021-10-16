@@ -3,22 +3,20 @@ service: serverless-flask
 plugins:
   - serverless-python-requirements
   - serverless-wsgi
-
 custom:
   wsgi:
     app: server.server.app
-    packRequirements: false
   pythonRequirements:
     dockerizePip: non-linux
-  apigwBinary:
-    types:
-      - '*/*'
 
 provider:
   name: aws
   runtime: python3.6
   stage: dev
   region: us-west-2
+  apiGateway: 
+    binaryMediaTypes:
+      - '*/*'
 
 functions:
   app:
@@ -26,3 +24,5 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY /{proxy+}'
+    
+
