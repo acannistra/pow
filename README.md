@@ -1,3 +1,6 @@
+<img height="250px" src="https://user-images.githubusercontent.com/1641939/201805660-5e9c3345-ce60-4d08-bd46-4052af87e8e2.jpeg"/>
+
+
 <h1>POW<img style="float: right;" src="https://www.raspberrypi.org/app/uploads/2018/03/RPi-Logo-Reg-SCREEN.png" height="50px">
 </h1>
 *In active development*.
