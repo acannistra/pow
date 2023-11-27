@@ -7,7 +7,7 @@ import matplotlib
 import json
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-sys.path.append('..')
+sys.path.append('.')
 from util import snowtools, dbtools
 
 POW_NWAC_STATIONS_FILE = os.environ.get("POW_NWAC_STATIONS_FILE", "nwac-stations.json")
