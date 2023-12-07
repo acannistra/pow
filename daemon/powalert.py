@@ -55,13 +55,13 @@ def get_status(station, threshold, period):
 
 def setup_gpio(pin):
     g.setmode(g.BCM)
-    g.setup(pin, g.OUT, initial=g.LOW)
+    g.setup(pin, g.OUT, initial=g.HIGH)
 
 def turn_lamp_on(pin):
-    g.output(pin, g.HIGH)
+    g.output(pin, g.LOW)
     return True
 def turn_lamp_off(pin):
-    g.output(pin, g.LOW)
+    g.output(pin, g.HIGH)
     return False
 
 def die_gracefully(signal, frame):
