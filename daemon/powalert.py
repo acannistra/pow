@@ -69,14 +69,19 @@ def die_gracefully(signal, frame):
     g.cleanup()
     sys.exit(0)
 
-def test_lamp(pin): 
+def test_lamp(pin):
+    logging.info("Testing lamp") 
     turn_lamp_on(pin)
+    logging.info(" lamp on")
     sleep(0.5)
     turn_lamp_off(pin)
+    logging.info(' lamp off')
     sleep(0.5)
     turn_lamp_on(pin)
+    logging.info(' lamp on')
     sleep(0.5)
     turn_lamp_off(pin)
+    logging.info(' lamp off')
     return True
 
 
