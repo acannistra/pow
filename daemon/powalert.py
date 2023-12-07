@@ -39,7 +39,7 @@ def tweet(location, amount, interval, authdata):
     _tw.update_status(status=_tweet_str)
 
 
-POW_API_URL = os.environ.get("POW_API_URL", "https://81s7s0fg1e.execute-api.us-west-2.amazonaws.com/dev/pow")
+POW_API_URL = os.environ.get("POW_API_URL", "https://pow.fly.dev/pow")
 POW_GPIO_PIN = os.environ.get("POW_GPIO_PIN", 21)
 
 def get_status(station, threshold, period):
@@ -69,6 +69,16 @@ def die_gracefully(signal, frame):
     g.cleanup()
     sys.exit(0)
 
+def test_lamp(pin): 
+    turn_lamp_on(pin)
+    sleep(0.5)
+    turn_lamp_off(pin)
+    sleep(0.5)
+    turn_lamp_on(pin)
+    sleep(0.5)
+    turn_lamp_off(pin)
+    return True
+
 
 @click.command()
 @click.option('--logfile', default=None)
@@ -81,6 +91,8 @@ def daemon(logfile, twitter, config):
     setup_gpio(POW_GPIO_PIN)
     signal.signal(signal.SIGINT, die_gracefully)
     signal.signal(signal.SIGTERM, die_gracefully)
+
+    test_lamp(POW_GPIO_PIN)
 
     twitter_auth = None
     if twitter:
