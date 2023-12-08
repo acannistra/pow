@@ -48,7 +48,7 @@ def parse_request(request):
         raise APIError(f"Station \"{station}\" not found. See /stations.", status_code=404)
 
 
-    return (id, threshold, period)
+    return (station, id, threshold, period)
 
 def compute_pow(staid, thresh, period):
     snow = snowtools.get_snow_df(staid, period*4)
@@ -57,7 +57,7 @@ def compute_pow(staid, thresh, period):
 
 @app.route("/pow/")
 def pow():
-    staid, threshold, period = parse_request(request)
+    staname, staid, threshold, period = parse_request(request)
 
     pow = compute_pow(staid, threshold, period)
 
@@ -70,11 +70,11 @@ def pow():
 
 @app.route("/pow/plot")
 def plotpow():
-    staid, threshold, period = parse_request(request)
+    staname, staid, threshold, period = parse_request(request)
 
     pow = compute_pow(staid, threshold, period)
 
-    fig = snowtools.pow_history(pow, staid)
+    fig = snowtools.pow_history(pow, staname)
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
     buf.seek(0)
